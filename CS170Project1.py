@@ -1,6 +1,7 @@
 import heapq as minHeap #minHeap 
 import copy
 
+
 #functions for mov
 def moveUp(node,row,col):
     temp = node.board[row - 1][col]
@@ -36,10 +37,12 @@ class node:
         self.child2 = None
         self.child3 = None
         self.child4 = None
+        self.depth = 0
+        self.heuristic = 0
 
 
-    #evaluates possible operators
-    def operators(self):
+    #evaluates possible operators (visited holds list of visited nodes to avoid repeated states )
+    def operators(self,visited):
 
         #find current location of '0' tile to move
         for i in range( len(self.board) ) :
@@ -57,31 +60,47 @@ class node:
         if(row > 0):
             newNode = copy.deepcopy(self)
             moveUp(newNode,row,col)
-            print("When moving up:" + '\n') 
-            printPuzzle(newNode.board)
-        
-        
+            if(newNode not in visited):
+                self.child1 = newNode
+                self.child1.depth +=1
+                visited.append(self.child1)
+            #print("When moving up:" + '\n') 
+            #printPuzzle(newNode.board)
+
+      
         #able to move down
         if(row < 2):
             newNode = copy.deepcopy(self)
             moveDown(newNode,row,col)
-            print("When moving down:"+ '\n')
-            printPuzzle(newNode.board)
+            if(newNode not in visited):
+                self.child2 = newNode
+                self.child2.depth +=1
+                visited.append(self.child2)
+            #print("When moving down:"+ '\n')
+            #printPuzzle(newNode.board)
         
         #able to move right 
         if(col < 2):
             newNode = copy.deepcopy(self)
             moveRight(newNode,row,col)
-            print("When moving right:"+ '\n') 
-            printPuzzle(newNode.board)
+            if(newNode not in visited):
+                self.child3 = newNode
+                self.child3.depth +=1
+                visited.append(self.child3)
+            #print("When moving right:"+ '\n') 
+            #printPuzzle(newNode.board)
             
 
         #able to move left
         if(col != 0):
             newNode = copy.deepcopy(self)
             moveLeft(newNode,row,col)
-            print("When moving left:"+ '\n') 
-            printPuzzle(newNode.board)
+            if(newNode not in visited):
+                self.child4 = newNode
+                self.child4.depth +=1
+                visited.append(self.child4)
+            #print("When moving left:"+ '\n') 
+            #printPuzzle(newNode.board)
 
         return
 
@@ -90,9 +109,21 @@ class node:
 def puzzleGenerator():
     puzzle_mode = input("Welcome to an 8-Puzzle Solver. Type '1' to use a default puzzle, or '2' to create your own." + '\n')
     if puzzle_mode == "1":
-        user_puzzle =   [[0, 1, 2],
-                        [4, 5, 3],
-                        [7, 8, 6]]
+        user_puzzle = [[0, 1, 2],
+                       [4, 5, 3],
+                       [7, 8, 6]]
+
+        superEasy =  [[1, 2, 0],
+                      [4, 5, 3],
+                      [7, 8, 6]]
+
+        doable = [[0, 1, 2],
+                  [4, 5, 3],
+                  [7, 8, 6]]                    
+                               
+        oh_boy = [[8, 7, 1],
+                  [6, 0, 2],
+                  [5, 4, 3]]
 
     if puzzle_mode == "2":
         print("Enter your puzzle, using a zero to represent the blank. " +
@@ -116,17 +147,18 @@ def puzzleGenerator():
 
         #storing user puzzle    
         user_puzzle = [puzzle_row_one, puzzle_row_two, puzzle_row_three]
-    return user_puzzle
+    #return user_puzzle
+    return oh_boy
 
 #Framework for menu prompts and printing puzzle from sample report given
 def main():
     
     #create a node based off the user chosen board   
     testNode = node(puzzleGenerator())
-    printPuzzle(testNode.board)
+    #printPuzzle(testNode.board)
 
-    testNode.operators()
-
+    generalSearch(testNode)
+    
     return
 
 def printPuzzle(puzzle):
@@ -134,39 +166,74 @@ def printPuzzle(puzzle):
         print(puzzle[i])
     print('\n')
 
-
-
-def generalSearch(problem, qFunct):
+def generalSearch(problem):
 
     #queue of nodes to search through
     nodes = []
 
-    #creting initial state(parent node)
-    parentNode = node(problem)
+    #list of nodes already visited 
+    visited = []
 
-    #add inital state (parent node) to the queue 
-    nodes.append(parentNode)
+    #add inital state (problem) to the queue 
+    nodes.append(problem)
+
+    #variable to hold currBoard for initial while Check
+    currNode = problem
+
+    #initial check incase user enters solved board at start 
+    if(goalAchieved(currNode)):
+        print("You entered a solved board, try again!")
+        printPuzzle(currNode.board)
+        return 
 
 
-    while(not goalAchieved):
+    #loop that solves problem
+    while(not goalAchieved(currNode)):
         
         #if queue is empty, no solution found. Terminate
-        if(nodes.isEmpty()):
+        if(len(nodes) == 0):
             print ("Failure: No valid solution :/")
             return
     
         #obtain new node from queue 
-        currNode = nodes.pop()
+        currNode = nodes.pop(0)
+        printPuzzle(currNode.board)
+        print("Current Node has depth of: ", currNode.depth)
+        
+    
+        
 
         #GOAL_TEST for current node 
         if(goalAchieved(currNode)):
             print("Success: We found the solution!")
-            print (currNode)
+            printPuzzle(currNode.board)
             return 
 
         #implement queuing function 
         #nodes = qFunc(nodes,expand(node,OPERATORS))
 
+        #directly only do uniform cost search 
+        currNode.operators(visited)
+
+        if(currNode.child1 != None):
+
+            #printPuzzle(currNode.child1.board)
+            nodes.append(currNode.child1)
+
+        if(currNode.child2 != None):
+
+            #printPuzzle(currNode.child2.board)
+            nodes.append(currNode.child2)
+
+        if(currNode.child3 != None):
+
+           # printPuzzle(currNode.child3.board)
+             nodes.append(currNode.child3)
+
+        if(currNode.child4 != None):
+
+            #printPuzzle(currNode.child4.board)
+            nodes.append(currNode.child4)
 
     return
 
@@ -176,11 +243,13 @@ def generalSearch(problem, qFunct):
 #evaulates whether a particular state/node is the goal state 
 def goalAchieved(problem):
     
-    solvedPuzzle = [[0, 1, 2],
-                    [3, 4, 5],
-                    [6, 7, 8]]
+    solvedPuzzle = [[1, 2, 3],
+                    [4, 5, 6],
+                    [7, 8, 0]]
 
-    if(problem == solvedPuzzle):
+    solvedNode = node(solvedPuzzle)
+
+    if(problem.board == solvedNode.board):
         return True
     else:
         return False
