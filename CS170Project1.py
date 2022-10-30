@@ -1,18 +1,93 @@
 import heapq as minHeap #minHeap 
+import copy
 
-#class to store node of current puzzle and potential chlidren  
+#functions for mov
+def moveUp(node,row,col):
+    temp = node.board[row - 1][col]
+    node.board[row-1][col] = 0
+    node.board[row][col] = temp
+    return
+
+def moveDown(node,row,col):
+    temp = node.board[row+1][col]
+    node.board[row+1][col] = 0
+    node.board[row][col] = temp
+    return
+
+def moveRight(node,row,col):
+    temp = node.board[row][col+1]
+    node.board[row][col+1] = 0
+    node.board[row][col] = temp
+    return
+
+def moveLeft(node,row,col):
+    temp = node.board[row][col-1]
+    node.board[row][col-1] = 0
+    node.board[row][col] = temp
+    return
+
+
+#class to store node of current puzzle and potential chlidren
+# potential max of 4 children (move '0' up,down,right,left)      
 class node:
-    def __init__(self):
+    def __init__(self,board):
+        self.board = board
         self.child1 = None
         self.child2 = None
         self.child3 = None
         self.child4 = None
 
 
+    #evaluates possible operators
+    def operators(self):
+
+        #find current location of '0' tile to move
+        for i in range( len(self.board) ) :
+            for j in range( len(self.board) ):
+                if self.board[i][j]  == 0:
+                    row = i
+                    col = j
 
 
-#Framework for menu prompts and printing puzzle from sample report given
-def main():
+        #Calling operators for each possible case
+        #Can change if conditions to n variable values 
+        #for n x n puzzles 
+
+        #able to move up
+        if(row > 0):
+            newNode = copy.deepcopy(self)
+            moveUp(newNode,row,col)
+            print("When moving up:" + '\n') 
+            printPuzzle(newNode.board)
+        
+        
+        #able to move down
+        if(row < 2):
+            newNode = copy.deepcopy(self)
+            moveDown(newNode,row,col)
+            print("When moving down:"+ '\n')
+            printPuzzle(newNode.board)
+        
+        #able to move right 
+        if(col < 2):
+            newNode = copy.deepcopy(self)
+            moveRight(newNode,row,col)
+            print("When moving right:"+ '\n') 
+            printPuzzle(newNode.board)
+            
+
+        #able to move left
+        if(col != 0):
+            newNode = copy.deepcopy(self)
+            moveLeft(newNode,row,col)
+            print("When moving left:"+ '\n') 
+            printPuzzle(newNode.board)
+
+        return
+
+
+#prompts user for type of puzzle and generates board
+def puzzleGenerator():
     puzzle_mode = input("Welcome to an 8-Puzzle Solver. Type '1' to use a default puzzle, or '2' to create your own." + '\n')
     if puzzle_mode == "1":
         user_puzzle =   [[0, 1, 2],
@@ -41,12 +116,20 @@ def main():
 
         #storing user puzzle    
         user_puzzle = [puzzle_row_one, puzzle_row_two, puzzle_row_three]
+    return user_puzzle
 
+#Framework for menu prompts and printing puzzle from sample report given
+def main():
+    
+    #create a node based off the user chosen board   
+    testNode = node(puzzleGenerator())
+    printPuzzle(testNode.board)
 
-    print_puzzle(user_puzzle)
+    testNode.operators()
+
     return
 
-def print_puzzle(puzzle):
+def printPuzzle(puzzle):
     for i in range(0, 3):
         print(puzzle[i])
     print('\n')
@@ -56,24 +139,24 @@ def print_puzzle(puzzle):
 def generalSearch(problem, qFunct):
 
     #queue of nodes to search through
-    q = []
+    nodes = []
 
     #creting initial state(parent node)
     parentNode = node(problem)
 
     #add inital state (parent node) to the queue 
-    q.append(parentNode)
+    nodes.append(parentNode)
 
 
     while(not goalAchieved):
         
         #if queue is empty, no solution found. Terminate
-        if(q.isEmpty()):
+        if(nodes.isEmpty()):
             print ("Failure: No valid solution :/")
             return
     
         #obtain new node from queue 
-        currNode = q.pop()
+        currNode = nodes.pop()
 
         #GOAL_TEST for current node 
         if(goalAchieved(currNode)):
@@ -82,10 +165,11 @@ def generalSearch(problem, qFunct):
             return 
 
         #implement queuing function 
-        #q = qFunc(q,expand(currNode,OPERATORS))
+        #nodes = qFunc(nodes,expand(node,OPERATORS))
 
 
     return
+
 
 
 
