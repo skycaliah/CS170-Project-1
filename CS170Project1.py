@@ -3,28 +3,28 @@ import copy
 
 
 #functions for mov
-def moveUp(node,row,col):
-    temp = node.board[row - 1][col]
-    node.board[row-1][col] = 0
-    node.board[row][col] = temp
+def moveUp(board,row,col):
+    temp = board[row - 1][col]
+    board[row-1][col] = 0
+    board[row][col] = temp
     return
 
-def moveDown(node,row,col):
-    temp = node.board[row+1][col]
-    node.board[row+1][col] = 0
-    node.board[row][col] = temp
+def moveDown(board,row,col):
+    temp = board[row+1][col]
+    board[row+1][col] = 0
+    board[row][col] = temp
     return
 
-def moveRight(node,row,col):
-    temp = node.board[row][col+1]
-    node.board[row][col+1] = 0
-    node.board[row][col] = temp
+def moveRight(board,row,col):
+    temp = board[row][col+1]
+    board[row][col+1] = 0
+    board[row][col] = temp
     return
 
-def moveLeft(node,row,col):
-    temp = node.board[row][col-1]
-    node.board[row][col-1] = 0
-    node.board[row][col] = temp
+def moveLeft(board,row,col):
+    temp = board[row][col-1]
+    board[row][col-1] = 0
+    board[row][col] = temp
     return
 
 
@@ -39,6 +39,12 @@ class node:
         self.child4 = None
         self.depth = 0
         self.heuristic = 0
+
+
+    def __eq__(self,other):
+        if isinstance(other,node):
+            return self.board == other.board
+
 
 
     #evaluates possible operators (visited holds list of visited nodes to avoid repeated states )
@@ -58,11 +64,11 @@ class node:
 
         #able to move up
         if(row > 0):
-            newNode = copy.deepcopy(self)
-            moveUp(newNode,row,col)
-            if(newNode not in visited):
-                self.child1 = newNode
-                self.child1.depth +=1
+            newBoard = copy.deepcopy(self.board)
+            moveUp(newBoard,row,col)
+            if(newBoard not in visited):
+                self.child1 = node(newBoard)
+                self.child1.depth = self.depth + 1
                 visited.append(self.child1)
             #print("When moving up:" + '\n') 
             #printPuzzle(newNode.board)
@@ -70,22 +76,22 @@ class node:
       
         #able to move down
         if(row < 2):
-            newNode = copy.deepcopy(self)
-            moveDown(newNode,row,col)
-            if(newNode not in visited):
-                self.child2 = newNode
-                self.child2.depth +=1
+            newBoard = copy.deepcopy(self.board)
+            moveDown(newBoard,row,col)
+            if(newBoard not in visited):
+                self.child2 = node(newBoard)
+                self.child2.depth = self.depth + 1
                 visited.append(self.child2)
             #print("When moving down:"+ '\n')
             #printPuzzle(newNode.board)
         
         #able to move right 
         if(col < 2):
-            newNode = copy.deepcopy(self)
-            moveRight(newNode,row,col)
-            if(newNode not in visited):
-                self.child3 = newNode
-                self.child3.depth +=1
+            newBoard = copy.deepcopy(self.board)
+            moveRight(newBoard,row,col)
+            if(newBoard not in visited):
+                self.child3 = node(newBoard)
+                self.child3.depth = self.depth + 1
                 visited.append(self.child3)
             #print("When moving right:"+ '\n') 
             #printPuzzle(newNode.board)
@@ -93,11 +99,11 @@ class node:
 
         #able to move left
         if(col != 0):
-            newNode = copy.deepcopy(self)
-            moveLeft(newNode,row,col)
-            if(newNode not in visited):
-                self.child4 = newNode
-                self.child4.depth +=1
+            newBoard = copy.deepcopy(self.board)
+            moveLeft(newBoard,row,col)
+            if(newBoard not in visited):
+                self.child4 = node(newBoard)
+                self.child4.depth = self.depth + 1
                 visited.append(self.child4)
             #print("When moving left:"+ '\n') 
             #printPuzzle(newNode.board)
@@ -125,6 +131,10 @@ def puzzleGenerator():
                   [6, 0, 2],
                   [5, 4, 3]]
 
+        depth8 = [[1, 3, 6],
+                  [5, 0, 2],
+                  [4, 7, 8]]
+
     if puzzle_mode == "2":
         print("Enter your puzzle, using a zero to represent the blank. " +
               "Please only enter valid 8-puzzles. Enter the puzzle with spaces between the numbers." + '\n')
@@ -148,7 +158,7 @@ def puzzleGenerator():
         #storing user puzzle    
         user_puzzle = [puzzle_row_one, puzzle_row_two, puzzle_row_three]
     #return user_puzzle
-    return oh_boy
+    return depth8
 
 #Framework for menu prompts and printing puzzle from sample report given
 def main():
@@ -158,6 +168,8 @@ def main():
     #printPuzzle(testNode.board)
 
     generalSearch(testNode)
+                        
+                                                        
     
     return
 
@@ -179,6 +191,7 @@ def generalSearch(problem):
 
     #variable to hold currBoard for initial while Check
     currNode = problem
+    visited.append(currNode)
 
     #initial check incase user enters solved board at start 
     if(goalAchieved(currNode)):
@@ -197,8 +210,9 @@ def generalSearch(problem):
     
         #obtain new node from queue 
         currNode = nodes.pop(0)
-        printPuzzle(currNode.board)
         print("Current Node has depth of: ", currNode.depth)
+        printPuzzle(currNode.board)
+   
         
     
         
