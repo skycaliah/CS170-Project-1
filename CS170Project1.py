@@ -1,4 +1,5 @@
 import copy
+from operator import iconcat
 import time
 
 
@@ -167,7 +168,7 @@ def puzzleGenerator():
         #storing user puzzle    
         user_puzzle = [puzzle_row_one, puzzle_row_two, puzzle_row_three]
     #return user_puzzle
-    return depth12
+    return depth16
 
 #Framework for menu prompts and printing puzzle from sample report given
 def main():
@@ -232,6 +233,9 @@ def generalSearch(problem,qFunc):
         if(qFunc == 2):
             currNode.h = misplacedTile(currNode)
 
+        elif(qFunc == 3):
+            currNode.h = manhattanDist(currNode)
+
         #have queue sorted based of heuristc value 
         #minHeap.heappush(nodes,currNode)
         #minHeap.heapify(nodes)
@@ -270,9 +274,11 @@ def generalSearch(problem,qFunc):
 
             if(qFunc == 2):
                 currNode.child1.h = misplacedTile(currNode.child1)
-                currNode.child1.fn = currNode.child1.h + currNode.child1.depth
+            elif(qFunc == 3):
+                currNode.child1.h = manhattanDist(currNode.child1)
 
-            #printPuzzle(currNode.child1.board)
+            currNode.child1.fn = currNode.child1.h + currNode.child1.depth
+
             nodes.append(currNode.child1)
             visited.append(currNode.child1.board)
 
@@ -281,7 +287,10 @@ def generalSearch(problem,qFunc):
 
             if(qFunc == 2):
                 currNode.child2.h = misplacedTile(currNode.child2)
-                currNode.child2.fn = currNode.child2.h + currNode.child2.depth
+            elif(qFunc == 3):
+                currNode.child2.h = manhattanDist(currNode.child2)
+
+            currNode.child2.fn = currNode.child2.h + currNode.child2.depth
 
             #printPuzzle(currNode.child2.board)
             nodes.append(currNode.child2)
@@ -290,20 +299,26 @@ def generalSearch(problem,qFunc):
 
         if(currNode.child3 != None):
 
-             if(qFunc == 2):
+            if(qFunc == 2):
                 currNode.child3.h = misplacedTile(currNode.child3)
-                currNode.child3.fn = currNode.child3.h + currNode.child3.depth
+            elif(qFunc == 3):
+                currNode.child3.h = manhattanDist(currNode.child3)
+
+            currNode.child3.fn = currNode.child3.h + currNode.child3.depth
 
            # printPuzzle(currNode.child3.board)
-             nodes.append(currNode.child3)
-             visited.append(currNode.child3.board)
+            nodes.append(currNode.child3)
+            visited.append(currNode.child3.board)
 
 
         if(currNode.child4 != None):
 
             if(qFunc == 2):
                 currNode.child4.h = misplacedTile(currNode.child4)
-                currNode.child4.fn = currNode.child4.h + currNode.child4.depth
+            elif(qFunc == 3):
+                currNode.child4.h = manhattanDist(currNode.child4)
+
+            currNode.child4.fn = currNode.child4.h + currNode.child4.depth
 
             #printPuzzle(currNode.child4.board)
             nodes.append(currNode.child4)
@@ -326,6 +341,38 @@ def misplacedTile(node):
 
     return numMisplaced
     
+def manhattanDist(node):
+        
+    solvedPuzzle = [[1, 2, 3],
+                    [4, 5, 6],
+                    [7, 8, 0]]
+
+
+    #array to hold index values of 2 array mapping to solvedPuzzle
+    goalIndex = [[(0,0),(0,1),(0,2)],
+                [(1,0),(1,1),(1,2)],
+                [(2,0),(2,1),(2,2)]]
+
+
+    currRow = 0
+    currCol = 0
+
+    #number of moves needed to get particular number in proper position
+    moveDistance = 0
+
+    for i in range( len(node.board) ) :
+        for j in range( len(node.board) ):
+            if(node.board[i][j] != solvedPuzzle[i][j]):
+                currRow = i
+                currCol = j
+
+                #calculates number of moves based on index of current board and goal state for each respective tile
+                moveDistance += abs( (goalIndex[i][j][0] - currRow) + (goalIndex[i][j][1] - currCol ) )
+
+    return moveDistance
+
+
+
 
 
 #evaulates whether a particular state/node is the goal state 
