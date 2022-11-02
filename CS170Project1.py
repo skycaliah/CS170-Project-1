@@ -1,7 +1,7 @@
 import copy
-from operator import iconcat
+from re import L
+#from operator import iconcat
 import time
-
 
 #functions for mov
 def moveUp(board,row,col):
@@ -69,9 +69,8 @@ class node:
             if(newBoard not in visited):
                 self.child1 = node(newBoard)
                 self.child1.depth = self.depth + 1
-                visited.append(self.child1.board)
-            #print("When moving up:" + '\n') 
-            #printPuzzle(newNode.board)
+                
+            #visited.append(self.child1.board)
 
       
         #able to move down
@@ -81,9 +80,8 @@ class node:
             if(newBoard not in visited):
                 self.child2 = node(newBoard)
                 self.child2.depth = self.depth + 1
-                visited.append(self.child2.board)
-            #print("When moving down:"+ '\n')
-            #printPuzzle(newNode.board)
+                #visited.append(self.child2.board)
+
         
         #able to move right 
         if(col < 2):
@@ -92,10 +90,7 @@ class node:
             if(newBoard not in visited):
                 self.child3 = node(newBoard)
                 self.child3.depth = self.depth + 1
-                visited.append(self.child3.board)
-            #print("When moving right:"+ '\n') 
-            #printPuzzle(newNode.board)
-            
+                #visited.append(self.child3.board)
 
         #able to move left
         if(col != 0):
@@ -104,9 +99,7 @@ class node:
             if(newBoard not in visited):
                 self.child4 = node(newBoard)
                 self.child4.depth = self.depth + 1
-                visited.append(self.child4.board)
-            #print("When moving left:"+ '\n') 
-            #printPuzzle(newNode.board)
+                #visited.append(self.child4.board)
 
         return
 
@@ -117,33 +110,49 @@ class node:
 def puzzleGenerator():
     puzzle_mode = input("Welcome to an 8-Puzzle Solver. Type '1' to use a default puzzle, or '2' to create your own." + '\n')
     if puzzle_mode == "1":
-        user_puzzle = [[0, 1, 2],
-                       [4, 5, 3],
-                       [7, 8, 6]]
 
-        superEasy =  [[1, 2, 0],
-                      [4, 5, 3],
-                      [7, 8, 6]]
+        depthProblem = int(input("Choose your problem's depth by entering a '0' '2' '4' '8' '12' '16' '20' or '24'" + '\n'))
 
-        doable = [[0, 1, 2],
-                  [4, 5, 3],
-                  [7, 8, 6]]                    
-                               
-        oh_boy = [[8, 7, 1],
-                  [6, 0, 2],
-                  [5, 4, 3]]
 
-        depth8 = [[1, 3, 6],
-                  [5, 0, 2],
-                  [4, 7, 8]]
+        if(depthProblem == 0):
+            user_puzzle = [[1, 2, 3],
+                           [4, 5, 6],
+                           [7, 8, 0]]
 
-        depth12 = [[1, 3, 6],
-                  [5, 0, 7],
-                  [4, 8, 2]]
+        elif(depthProblem == 2):
+            user_puzzle = [[1, 2, 3],
+                           [4, 5, 6],
+                           [0, 7, 8]]
 
-        depth16 = [[1, 6, 7],
-                  [5, 0, 3],
-                  [4, 8, 2]]
+        elif(depthProblem == 4):
+            user_puzzle = [[1, 2, 3],
+                           [5, 0, 6],
+                           [4, 7, 8]]
+
+        elif(depthProblem == 8):
+            user_puzzle = [[1, 3, 6],
+                           [5, 0, 2],
+                           [4, 7, 8]]
+        elif(depthProblem == 12):
+            user_puzzle = [[1, 3, 6],
+                           [5, 0, 7],
+                           [4, 8, 2]]
+
+        elif(depthProblem == 16):
+            user_puzzle = [[1, 6, 7],
+                           [5, 0, 3],
+                           [4, 8, 2]]
+
+        elif(depthProblem == 20):
+            user_puzzle = [[7, 1, 2],
+                           [4, 8, 5],
+                           [6, 3, 0]]
+
+        elif(depthProblem == 24):
+            user_puzzle = [[0, 7, 2],
+                           [4, 6, 1],
+                           [3, 5, 8]]
+
 
     if puzzle_mode == "2":
         print("Enter your puzzle, using a zero to represent the blank. " +
@@ -168,13 +177,12 @@ def puzzleGenerator():
         #storing user puzzle    
         user_puzzle = [puzzle_row_one, puzzle_row_two, puzzle_row_three]
     #return user_puzzle
-    return depth16
+    return user_puzzle
 
 #Framework for menu prompts and printing puzzle from sample report given
 def main():
     
-    #start time 
-    st = time.time()
+    
 
     #create a node based off the user chosen board   
     testBoard = puzzleGenerator()
@@ -182,6 +190,8 @@ def main():
 
     qFunc = int(input("Enter what type of search you'd like to do: (1) Uniform Cost Search (2) A* with Misplaced Tile (3) A* with Manhattan Distance" + '\n'))
 
+    #start time 
+    st = time.time()
     generalSearch(testBoard,qFunc)
 
     #end time 
@@ -200,6 +210,15 @@ def printPuzzle(puzzle):
 
 def generalSearch(problem,qFunc):
 
+    #global variable for keeping track of runtime statistics
+    #expandedNodes: number of nodes be expanded through operators 
+    #maxQ: the max value see so far in the queue 
+    #tempQ: temp variable for holding current queue count for updating maxQ
+    expandedNodes = 0
+    maxQ = 0
+    tempQ = 0
+
+
     #queue of nodes to search through
     nodes = []
 
@@ -210,15 +229,23 @@ def generalSearch(problem,qFunc):
 
     #add inital state (problem) to the queue 
     nodes.append(currNode)
-
+    tempQ +=1
+    maxQ +=1
+    
     #variable to hold currBoard for initial while Check
     visited.append(currNode.board)
 
     #initial check incase user enters solved board at start 
     if(goalAchieved(currNode)):
-        print("You entered a solved board, try again!")
+        print("Goal state!")
         printPuzzle(currNode.board)
+        print("Solution depth was:", currNode.depth)
+        print("Number of nodes expanded:", expandedNodes)
+        print("Max queue size:",maxQ )
+        print("Temp queue size:", tempQ)
         return 
+
+
 
 
     #loop that solves problem
@@ -228,43 +255,44 @@ def generalSearch(problem,qFunc):
         if(len(nodes) == 0):
             print ("Failure: No valid solution :/")
             return
-    
 
+
+        #set herusictic 
         if(qFunc == 2):
             currNode.h = misplacedTile(currNode)
 
         elif(qFunc == 3):
             currNode.h = manhattanDist(currNode)
 
-        #have queue sorted based of heuristc value 
-        #minHeap.heappush(nodes,currNode)
-        #minHeap.heapify(nodes)
-
+        #have queue sorted based off heuristc value 
         if(qFunc == 2 or qFunc ==3):
-            nodes = sorted(nodes, key=lambda cost: cost.fn)
+            nodes = sorted(nodes, key=lambda cost: (cost.fn, cost.depth))
 
         #obtain new node from queue 
         currNode = nodes.pop(0)
+        tempQ -=1
+        expandedNodes +=1
+
         
         #add currNode as visited node before expanding
         visited.append(currNode.board)
 
         #print current board and it's depth 
-        print("Current Node has depth of: ", currNode.depth)
+        print("The best state to expand with a g(n)=", currNode.depth, "and h(n)= ", currNode.h)
         printPuzzle(currNode.board)
    
-        
-    
-        
 
         #GOAL_TEST for current node 
         if(goalAchieved(currNode)):
-            print("Success: We found the solution!")
+            print("Goal state!")
             printPuzzle(currNode.board)
+            print("Solution depth was:", currNode.depth)
+            print("Number of nodes expanded:", expandedNodes)
+            print("Max queue size:",maxQ )
+            print("Temp queue size:", tempQ)
+
             return 
 
-        #implement queuing function 
-        #nodes = qFunc(nodes,expand(node,OPERATORS))
 
         #Call available operators to expand currNode and create all its children
         currNode.operators(visited)
@@ -278,9 +306,11 @@ def generalSearch(problem,qFunc):
                 currNode.child1.h = manhattanDist(currNode.child1)
 
             currNode.child1.fn = currNode.child1.h + currNode.child1.depth
-
+            
             nodes.append(currNode.child1)
             visited.append(currNode.child1.board)
+
+            tempQ +=1
 
 
         if(currNode.child2 != None):
@@ -296,6 +326,8 @@ def generalSearch(problem,qFunc):
             nodes.append(currNode.child2)
             visited.append(currNode.child2.board)
 
+            tempQ +=1
+
 
         if(currNode.child3 != None):
 
@@ -309,6 +341,8 @@ def generalSearch(problem,qFunc):
            # printPuzzle(currNode.child3.board)
             nodes.append(currNode.child3)
             visited.append(currNode.child3.board)
+
+            tempQ +=1
 
 
         if(currNode.child4 != None):
@@ -324,6 +358,10 @@ def generalSearch(problem,qFunc):
             nodes.append(currNode.child4)
             visited.append(currNode.child4.board)
 
+            tempQ +=1
+
+        if(tempQ > maxQ):
+            maxQ = tempQ
 
     return
 
@@ -341,6 +379,8 @@ def misplacedTile(node):
 
     return numMisplaced
     
+ 
+#manhattanDistance Heuristic. Count number of moves needed to move each individual piece and return the sum   
 def manhattanDist(node):
         
     solvedPuzzle = [[1, 2, 3],
@@ -349,11 +389,10 @@ def manhattanDist(node):
 
 
     #array to hold index values of 2 array mapping to solvedPuzzle
-    goalIndex = [[(0,0),(0,1),(0,2)],
-                [(1,0),(1,1),(1,2)],
-                [(2,0),(2,1),(2,2)]]
+    goalIndex = [(0,0),(0,1),(0,2),(1,0),(1,1),(1,2),(2,0),(2,1),(2,2)]
 
 
+    #variable to hold current row and current column of loop for ease of reading
     currRow = 0
     currCol = 0
 
@@ -366,8 +405,10 @@ def manhattanDist(node):
                 currRow = i
                 currCol = j
 
-                #calculates number of moves based on index of current board and goal state for each respective tile
-                moveDistance += abs( (goalIndex[i][j][0] - currRow) + (goalIndex[i][j][1] - currCol ) )
+                #calculates number of moves based on index of current board and goal state for each respective tile using array of tuples
+                #goalIndex[ . . .]
+                if(node.board[i][j] != 0):
+                    moveDistance += abs(goalIndex[ node.board[i][j] -1 ][0] - currRow) + abs( goalIndex[ node.board[i][j] -1 ][1] - currCol )
 
     return moveDistance
 
