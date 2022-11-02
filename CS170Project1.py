@@ -97,9 +97,6 @@ class node:
 
         return
 
-
-
-
 #prompts user for type of puzzle and generates board
 #creation of custom puzzle gathered from Project Assignment 
 def puzzleGenerator():
@@ -436,6 +433,7 @@ def goalAchieved(problem):
         return False
 
 
+#call main
 main()
 
 
