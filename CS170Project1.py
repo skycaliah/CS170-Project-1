@@ -1,9 +1,7 @@
 import copy
-from re import L
-#from operator import iconcat
 import time
 
-#functions for mov
+#functions for moving tile in respective location (up,down,right,left)
 def moveUp(board,row,col):
     temp = board[row - 1][col]
     board[row-1][col] = 0
@@ -61,6 +59,7 @@ class node:
         #Calling operators for each possible case
         #Can change if conditions to n variable values 
         #for n x n puzzles 
+        #Updated children nodes for currNode and increases depth if able to move for each node
 
         #able to move up
         if(row > 0):
@@ -69,8 +68,6 @@ class node:
             if(newBoard not in visited):
                 self.child1 = node(newBoard)
                 self.child1.depth = self.depth + 1
-                
-            #visited.append(self.child1.board)
 
       
         #able to move down
@@ -80,7 +77,6 @@ class node:
             if(newBoard not in visited):
                 self.child2 = node(newBoard)
                 self.child2.depth = self.depth + 1
-                #visited.append(self.child2.board)
 
         
         #able to move right 
@@ -90,7 +86,6 @@ class node:
             if(newBoard not in visited):
                 self.child3 = node(newBoard)
                 self.child3.depth = self.depth + 1
-                #visited.append(self.child3.board)
 
         #able to move left
         if(col != 0):
@@ -99,7 +94,6 @@ class node:
             if(newBoard not in visited):
                 self.child4 = node(newBoard)
                 self.child4.depth = self.depth + 1
-                #visited.append(self.child4.board)
 
         return
 
@@ -107,12 +101,16 @@ class node:
 
 
 #prompts user for type of puzzle and generates board
+#creation of custom puzzle gathered from Project Assignment 
 def puzzleGenerator():
+
     puzzle_mode = input("Welcome to an 8-Puzzle Solver. Type '1' to use a default puzzle, or '2' to create your own." + '\n')
+
+    #Allow user to pick default puzzle of particular depth
+    #Puzzles below gathered from Project Assignment
     if puzzle_mode == "1":
 
         depthProblem = int(input("Choose your problem's depth by entering a '0' '2' '4' '8' '12' '16' '20' or '24'" + '\n'))
-
 
         if(depthProblem == 0):
             user_puzzle = [[1, 2, 3],
@@ -154,6 +152,7 @@ def puzzleGenerator():
                            [3, 5, 8]]
 
 
+    #Create custom user puzzle
     if puzzle_mode == "2":
         print("Enter your puzzle, using a zero to represent the blank. " +
               "Please only enter valid 8-puzzles. Enter the puzzle with spaces between the numbers." + '\n')
@@ -176,6 +175,7 @@ def puzzleGenerator():
 
         #storing user puzzle    
         user_puzzle = [puzzle_row_one, puzzle_row_two, puzzle_row_three]
+
     #return user_puzzle
     return user_puzzle
 
@@ -203,6 +203,7 @@ def main():
     
     return
 
+#helper function to print puzzle 
 def printPuzzle(puzzle):
     for i in range(0, 3):
         print(puzzle[i])
@@ -225,6 +226,7 @@ def generalSearch(problem,qFunc):
     #list of nodes already visited 
     visited = []
 
+    #initialize 1st node (initial state)
     currNode = node(problem)
 
     #add inital state (problem) to the queue 
@@ -248,7 +250,7 @@ def generalSearch(problem,qFunc):
 
 
 
-    #loop that solves problem
+    #main loop that solves problem
     while(not goalAchieved(currNode)):
         
         #if queue is empty, no solution found. Terminate
@@ -257,7 +259,7 @@ def generalSearch(problem,qFunc):
             return
 
 
-        #set herusictic 
+        #set herusictic value depending on user input
         if(qFunc == 2):
             currNode.h = misplacedTile(currNode)
 
@@ -297,7 +299,8 @@ def generalSearch(problem,qFunc):
         #Call available operators to expand currNode and create all its children
         currNode.operators(visited)
 
-        #Series of checks to update child values of currNode and append to list of queues
+        #Series of checks to update heuristic cost for each child and append to queue of nodes 
+        #and visited nodes 
         if(currNode.child1 != None):
 
             if(qFunc == 2):
@@ -337,8 +340,6 @@ def generalSearch(problem,qFunc):
                 currNode.child3.h = manhattanDist(currNode.child3)
 
             currNode.child3.fn = currNode.child3.h + currNode.child3.depth
-
-           # printPuzzle(currNode.child3.board)
             nodes.append(currNode.child3)
             visited.append(currNode.child3.board)
 
@@ -353,13 +354,13 @@ def generalSearch(problem,qFunc):
                 currNode.child4.h = manhattanDist(currNode.child4)
 
             currNode.child4.fn = currNode.child4.h + currNode.child4.depth
-
-            #printPuzzle(currNode.child4.board)
             nodes.append(currNode.child4)
             visited.append(currNode.child4.board)
 
             tempQ +=1
 
+
+        #check for updating maxQ
         if(tempQ > maxQ):
             maxQ = tempQ
 
@@ -367,18 +368,22 @@ def generalSearch(problem,qFunc):
 
 #misplacedTile Heuristic. Count number of misplaced tiles (not including the blank)
 def misplacedTile(node):
+
+    #heuristic return value
+    #number of nodes not in goal location
     numMisplaced = 0
     solvedPuzzle = [[1, 2, 3],
                     [4, 5, 6],
                     [7, 8, 0]]
 
+    #for loop iterates through and checks each tile to see if it is 
+    #in the right position on the board (excluding 0)
     for i in range( len(node.board) ) :
             for j in range( len(node.board) ):
                 if (node.board[i][j] != solvedPuzzle[i][j] and node.board[i][j] != 0 ):
                     numMisplaced += 1
 
     return numMisplaced
-    
  
 #manhattanDistance Heuristic. Count number of moves needed to move each individual piece and return the sum   
 def manhattanDist(node):
@@ -399,6 +404,8 @@ def manhattanDist(node):
     #number of moves needed to get particular number in proper position
     moveDistance = 0
 
+    #for loop iterates through board and for each misplaced tile will calculate 
+    #the number of moves needed to get to goal location using index of array and goalIndex(array of tuple index locations)
     for i in range( len(node.board) ) :
         for j in range( len(node.board) ):
             if(node.board[i][j] != solvedPuzzle[i][j]):
@@ -412,11 +419,7 @@ def manhattanDist(node):
 
     return moveDistance
 
-
-
-
-
-#evaulates whether a particular state/node is the goal state 
+#Function for evaluation whether or not a current board is the goal state
 def goalAchieved(problem):
     
     solvedPuzzle = [[1, 2, 3],
