@@ -186,12 +186,14 @@ def main():
 
     #create a node based off the user chosen board   
     testBoard = puzzleGenerator()
-    #printPuzzle(testNode.board)
 
+    #Set what kind of heuristic we will use
     qFunc = int(input("Enter what type of search you'd like to do: (1) Uniform Cost Search (2) A* with Misplaced Tile (3) A* with Manhattan Distance" + '\n'))
 
     #start time 
     st = time.time()
+
+    #begin search to find solution
     generalSearch(testBoard,qFunc)
 
     #end time 
