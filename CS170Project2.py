@@ -5,7 +5,6 @@ def importData():
     data = pd.read_csv("CS170_Small_Data__110.txt", sep="  ", engine='python', header=None)
     return data
 
-
 #create basic search to search through data 
 def feature_search(data):
 
